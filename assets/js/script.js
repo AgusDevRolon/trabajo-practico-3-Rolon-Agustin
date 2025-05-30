@@ -1,6 +1,8 @@
 // Elementos del DOM
 const form = document.getElementById('form-busqueda');
 const contenedor = document.getElementById('personajes');
+const input = document.getElementById('nombre_buscar');
+const mensaje = document.getElementById('mensaje');
 
 // Cargar personajes al iniciar
 document.addEventListener('DOMContentLoaded', cargarPersonajesIniciales);
@@ -29,4 +31,40 @@ function mostrarPersonajes(personajes) {
     `;
     contenedor.appendChild(div);
   });
+}
+
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const nombre = input.value.trim();
+  
+  if (nombre === '') {
+    mostrarMensaje('Por favor ingresa un nombre', 'warning');
+    return;
+  }
+  
+  await buscarPersonajes(nombre);
+});
+
+async function buscarPersonajes(nombre) {
+  try {
+    const response = await fetch(`https://dragonball-api.com/api/characters?name=${encodeURIComponent(nombre)}`);
+    const data = await response.json();
+    
+    contenedor.innerHTML = '';
+    if (!data || data.length === 0) {
+      mostrarMensaje('No se encontraron resultados', 'info');
+      return;
+    }
+    
+    mostrarPersonajes(Array.isArray(data) ? data : [data]);
+  } catch (error) {
+    mostrarMensaje('Error al buscar', 'danger');
+    console.error(error);
+  }
+}
+
+function mostrarMensaje(texto, tipo) {
+  mensaje.textContent = texto;
+  mensaje.className = `alert alert-${tipo}`;
+  mensaje.style.display = 'block';
 }
